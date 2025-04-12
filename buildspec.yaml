@@ -1,0 +1,25 @@
+version: 0.2
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Building the Docker image...
+      - docker build -t limbad-ecs-repo .
+      - docker tag limbad-ecs-repo:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/limbad-ecs-repo:latest
+  post_build:
+    commands:
+      - echo Pushing the Docker image...
+      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/limbad-ecs-repo:latest
+      - echo Writing image definitions file...
+      - printf '[{"name":"limbad-flask-app","imageUri":"%s"}]' $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/limbad-ecs-repo:latest > imagedefinitions.json
+artifacts:
+  files:
+    - imagedefinitions.json
+env:
+  variables:
+    AWS_REGION: $AWS_REGION
+    AWS_ACCOUNT_ID: $AWS_ACCOUNT_ID
