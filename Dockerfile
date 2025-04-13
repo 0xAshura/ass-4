@@ -10,4 +10,4 @@ COPY app/ .  # Copy contents of app/ into /app
 
 EXPOSE 5000
 
-CMD ["python", "app.py"]
+CMD ["python", "app/app.py"]
